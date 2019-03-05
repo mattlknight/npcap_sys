@@ -1,0 +1,16 @@
+[package]
+name = "npcap_sys"
+version = "0.1.0"
+authors = ["Matthew Knight <mattlknight@gmail.com>"]
+license = "MIT"
+homepage = "https://github.com/mattlknight/npcap_sys"
+repository = "https://github.com/mattlknight/npcap_sys"
+description = "Bindings to Npcap Windows API"
+keywords = ["networking", "datalink", "ethernet", "raw"]
+categories = ["network-programming"]
+
+[dependencies]
+# libc = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { git = "https://github.com/mattlknight/winapi-rs", branch = "iphlpapi", features = ["impl-default", "in6addr", "inaddr", "minwindef", "winerror", "winsock2", "ws2def", "ws2ipdef"] }
