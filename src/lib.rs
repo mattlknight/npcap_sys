@@ -32,6 +32,7 @@ extern crate std;
 #[doc(hidden)]
 pub extern crate core as _core;
 
+pub extern crate winapi;
 
 #[cfg(feature = "npcap")]
 mod npcap;
@@ -39,3 +40,5 @@ mod npcap;
 // Copied directly from https://github.com/retep998/winapi-rs lib.rs and macros.rs
 #[macro_use]
 mod macros;
+
+pub mod packet32;
