@@ -1,16 +1,33 @@
 [package]
 name = "npcap_sys"
 version = "0.1.0"
-authors = ["Matthew Knight <mattlknight@gmail.com>"]
+authors = ["Matthew Knight <mattlknight@gmail.com>", "Peter Atashian <retep998@gmail.com>", "Robert Clipsham <robert@octarineparrot.com>"]
 license = "MIT"
 homepage = "https://github.com/mattlknight/npcap_sys"
 repository = "https://github.com/mattlknight/npcap_sys"
 description = "Bindings to Npcap Windows API"
-keywords = ["networking", "datalink", "ethernet", "raw"]
-categories = ["network-programming"]
+documentation = "https://docs.rs/npcap_sys/*/x86_64-pc-windows-msvc/npcap_sys/"
+keywords = ["networking", "datalink", "ethernet", "raw", "windows", "ffi", "win32"]
+categories = ["network-programming", "external-ffi-bindings", "no-std", "os::windows-apis"]
+readme = "README.md"
+include = ["/src/**/*", "/Cargo.toml", "/LICENSE", "/NPCAP_LICENSE", "/build.rs", "/README.md"]
+build = "build.rs"
+
+[package.metadata.docs.rs]
+features = ["everything"]
+default-target = "x86_64-pc-windows-msvc"
 
 [dependencies]
 # libc = "0.2"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { git = "https://github.com/mattlknight/winapi-rs", branch = "iphlpapi", features = ["impl-default", "in6addr", "inaddr", "minwindef", "winerror", "winsock2", "ws2def", "ws2ipdef"] }
+winapi = { git = "https://github.com/mattlknight/winapi-rs", branch = "iphlpapi", features = ["impl-default", "in6addr", "inaddr", "iptypes", "minwindef", "winerror", "winsock2", "ws2def", "ws2ipdef"] }
+
+[features]
+debug = ["impl-debug"]
+default = ["npcap", "impl-debug", "impl-default"]
+everything = []
+impl-debug = []
+impl-default = []
+std = []
+npcap = []
