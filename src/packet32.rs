@@ -215,5 +215,71 @@ extern "C" {
     pub fn PacketAllocatePacket(
         void: ctypes::c_void, // LPPACKET PacketAllocatePacket(void); // FIXME: Unsure if properly translated
     ) -> LPPACKET;
+    pub fn PacketInitPacket(
+        lpPacket: LPPACKET,
+        Buffer: ntdef::PVOID,
+        Length: minwindef::UINT,
+    ) -> ntdef::VOID;
+    pub fn PacketFreePacket(
+        lpPacket: LPPACKET,
+    ) -> ntdef::VOID;
+    pub fn PacketReceivePacket(
+        AdapterObject: LPADAPTER,
+        lpPacket: LPPACKET,
+        Sync_: ntdef::BOOLEAN, // Sync
+    ) -> ntdef::BOOLEAN;
+    pub fn PacketSetHwFilter(
+        AdapterObject: LPADAPTER,
+        Filter: minwindef::ULONG,
+    ) -> ntdef::BOOLEAN;
+    pub fn PacketGetAdapterNames(
+        pStr: ntdef::PCHAR,
+        BufferSize: minwindef::PULONG,
+    ) -> ntdef::BOOLEAN;
+    pub fn PacketGetNetInfoEx(
+        AdapterName: ntdef::PCHAR,
+        buffer: *mut npf_if_addr,
+        NEntries: minwindef::PULONG,
+    ) -> ntdef::BOOLEAN;
+    pub fn PacketRequest(
+        AdapterObject: LPADAPTER,
+        Set: ntdef::BOOLEAN,
+        OidData: PPACKET_OID_DATA,
+    ) -> ntdef::BOOLEAN;
+    pub fn PacketGetReadEvent(
+        AdapterObject: LPADAPTER,
+    ) -> ntdef::HANDLE;
+    pub fn PacketSetDumpName(
+        AdapterObject: LPADAPTER,
+        name: *mut ctypes::c_void,
+        len: ctypes::c_int,
+    ) -> ntdef::BOOLEAN;
+    pub fn PacketSetDumpLimits(
+        AdapterObject: LPADAPTER,
+        maxfilesize: minwindef::UINT,
+        maxnpacks: minwindef::UINT,
+    ) -> ntdef::BOOLEAN;
+    pub fn PacketIsDumpEnded(
+        AdapterObject: LPADAPTER,
+        Sync_: ntdef::BOOLEAN, // Sync
+    ) -> ntdef::BOOLEAN;
+    pub fn PacketStopDriver() -> minwindef::BOOL;
+    pub fn PacketStopDriver60() -> minwindef::BOOL;
+    pub fn PacketCloseAdapter(
+        AdapterObject: LPADAPTER,
+    ) -> ntdef::VOID;
+    pub fn PacketStartOem(
+        errorString: ntdef::PCHAR,
+        errorStringLength: minwindef::UINT,
+    ) -> ntdef::BOOLEAN;
+    pub fn PacketStartOemEx(
+        errorString: ntdef::PCHAR,
+        errorStringLength: minwindef::UINT,
+        flags: minwindef::ULONG,
+    ) -> ntdef::BOOLEAN;
+    // FIXME: Import types from airpcap.rs
+    // pub fn PacketGetAirPcapHandle(
+    //     AdapterObject: LPADAPTER,
+    // ) -> PAirpcapHandle;
 }
 pub const PACKET_START_OEM_NO_NETMON: usize = 0x00000001;
