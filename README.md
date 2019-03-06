@@ -19,6 +19,7 @@ Bindings to Npcap Windows API
    locations listed in the `%LIB%`/`$Env:LIB` environment variables. For the 64 bit toolchain it is
    in `npcap-sdk/Lib/x64/Packet.lib`, for the 32 bit toolchain, it is in `npcap-sdk/Lib/Packet.lib`.
   - For x64 build in powershell, you can run this in your powershell session first `$env:lib = "C:\WinDev\npcap-sdk-1.01\Lib\x64\"` assuming you have extracted the 1.01 version of the sdk into `C:\WinDev\`
+  - As an easier alternative, you can also go to Control Panel / System / Advanced / Env Vars and add a User variable called `lib` with the contents `C:\WinDev\npcap-sdk-1.01\Lib\x64\;`. Note the semi-colon, to make it easier to add more lib locations later.
 - To run tests, run `cargo test --features "everything"` from crate root
 
 ## Attributions
