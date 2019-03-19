@@ -18,16 +18,15 @@ features = ["everything"]
 default-target = "x86_64-pc-windows-msvc"
 
 [dependencies]
-# libc = "0.2"
+libc = "0.2"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { git = "https://github.com/mattlknight/winapi-rs", branch = "iphlpapi", features = ["impl-default", "in6addr", "inaddr", "iptypes", "minwinbase", "minwindef", "ntdef", "winerror", "winsock2", "ws2def", "ws2ipdef"] }
 
 [features]
 debug = ["impl-debug"]
-default = ["npcap", "impl-debug", "impl-default"]
+default = ["impl-debug", "impl-default"]
 everything = []
 impl-debug = []
 impl-default = []
 std = []
-npcap = []

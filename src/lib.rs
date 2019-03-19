@@ -25,6 +25,10 @@
 //#![cfg_attr(feature = "cargo-clippy", warn(clippy::pedantic))]
 //#![cfg_attr(feature = "cargo-clippy", allow(clippy::absurd_extreme_comparisons, clippy::cast_lossless, clippy::cast_possible_truncation, clippy::cast_possible_wrap, clippy::cast_precision_loss, clippy::cast_ptr_alignment, clippy::cast_sign_loss, clippy::const_static_lifetime, clippy::doc_markdown, clippy::empty_enum, clippy::erasing_op, clippy::excessive_precision, clippy::expl_impl_clone_on_copy, clippy::identity_op, clippy::if_not_else, clippy::many_single_char_names, clippy::module_inception, clippy::cast_possible_truncation, clippy::too_many_arguments, clippy::transmute_int_to_float, clippy::trivially_copy_pass_by_ref, clippy::unreadable_literal, clippy::unseparated_literal_suffix, clippy::used_underscore_binding))]
 
+// Copied directly from https://github.com/retep998/winapi-rs lib.rs and macros.rs
+#[macro_use]
+mod macros;
+
 #[cfg(feature = "std")]
 extern crate std;
 
@@ -33,12 +37,7 @@ extern crate std;
 pub extern crate core as _core;
 
 pub extern crate winapi;
+pub extern crate libc;
 
-#[cfg(feature = "npcap")]
-mod npcap;
+pub mod npcap;
 
-// Copied directly from https://github.com/retep998/winapi-rs lib.rs and macros.rs
-#[macro_use]
-mod macros;
-
-pub mod packet32;

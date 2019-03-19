@@ -74,7 +74,7 @@ STRUCT!{struct dump_bpf_hdr {
     caplen: minwindef::UINT,
     len: minwindef::UINT,
 }}
-pub const DOSNAMEPREFIX: &'static str = "Packet_";
+pub const DOSNAMEPREFIX: &'static str = "Packet_"; // #define 	   DOSNAMEPREFIX   TEXT("Packet_") // FIXME: Not sure if this is how you handle const text
 pub const MAX_LINK_NAME_LENGTH: usize = 64;
 pub const NMAX_PACKET: usize = 65535;
 pub type sockaddr_storage = ws2def::SOCKADDR_STORAGE;
@@ -109,7 +109,7 @@ STRUCT!{struct _ADAPTER {
     pWanAdapter: PWAN_ADAPTER,
     Flags: minwindef::UINT,
     // AirpcapAd: PAirpcapHandle, // FIXME: Import types from airpcap.rs
-    // void* NpfImHandle, // FIXME: Unsure how to handle this
+    NpfImHandle: *mut ctypes::c_void, // void* NpfImHandle,
     // pDagCard: *mut dagc_t, // FIXME: Import types from dagc.rs
     DagBuffer: ntdef::PCHAR,
     DagReadTimeout: timeval,
