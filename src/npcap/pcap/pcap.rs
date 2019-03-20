@@ -26,17 +26,18 @@
 // #include <remote-ext.h>
 //
 //! Npcap SDK wpcap.lib(dll) Public API bindings
-use libc::FILE;
-use winapi::ctypes::{c_char, c_int, c_uchar, c_uint, c_void};
+use winapi::ctypes::{c_char, c_int, c_long, c_uchar, c_uint, c_void};
 use winapi::shared::ws2def::{SOCKADDR};
+use winapi::um::winnt::{HANDLE};
 use winapi::um::winsock2::{timeval};
-use super::bpf::{bpf_u_int32, bpf_program};
+use super::bpf::{bpf_u_int32, bpf_program, bpf_insn};
 // use winapi::um::{minwinbase, winsock2};
 
 pub const PCAP_VERSION_MAJOR: usize = 2;
 pub const PCAP_VERSION_MINOR: usize = 4;
 pub const PCAP_ERRBUF_SIZE: usize = 256;
 pub type errbuf = [c_char; PCAP_ERRBUF_SIZE];
+pub type size_t = usize;
 STRUCT!{struct pcap_addr {
     next: *mut pcap_addr,
     addr: *mut SOCKADDR,
@@ -48,6 +49,10 @@ STRUCT!{struct pcap {
     _private: [u8; 0], // pcap is a private struct type, not in public api, used via an opaque pointer
 }}
 pub type pcap_t = pcap;
+STRUCT!{struct pcap_dumper {
+    _private: [u8; 0], // pcap_dumper is a private struct type, not in public api, used via an opaque pointer
+}}
+pub type pcap_dumper_t = pcap_dumper;
 STRUCT!{struct pcap_if {
     next: *mut pcap_if,
     name: *mut c_char,
@@ -74,6 +79,14 @@ ENUM!{enum pcap_direction_t {
     PCAP_D_INOUT = 0,
     PCAP_D_IN,
     PCAP_D_OUT,
+}}
+STRUCT!{struct pcap_send_queue {
+    maxlen: c_uint,
+    len: c_uint,
+    buffer: *mut c_char,
+}}
+STRUCT!{struct FILE {
+    _private: [u8; 0], // file is windows c runtime specific, used via an opaque pointer
 }}
 #[link(name = "wpcap")]
 extern "C" {
@@ -109,10 +122,10 @@ extern "C" {
     pub fn pcap_list_tstamp_types(p: *mut pcap_t, tstamp_typesp: *mut *mut c_int) -> c_int;
     /// free list of available time stamp types 
     pub fn pcap_free_tstamp_types(tstamp_types: *mut c_int) -> c_void;
-    /// get time stamp type corresponding to a name  (man pcap has descriptions swapped with name_to_val)
-    pub fn pcap_tstamp_type_val_to_name(name: *const c_char) -> c_int;
-    /// get name for a time stamp type  (man pcap has descriptions swapped with val_to_name)
-    pub fn pcap_tstamp_type_name_to_val(tstamp_type: c_int) -> *const c_char;
+    /// get time stamp type corresponding to a name
+    pub fn pcap_tstamp_type_name_to_val(name: *const c_char) -> c_int;
+    /// get name for a time stamp type
+    pub fn pcap_tstamp_type_val_to_name(tstamp_type: c_int) -> *const c_char;
     /// get description for a time stamp type 
     pub fn pcap_tstamp_type_val_to_description(tstamp_type: c_int) -> *const c_char;
     /// Backwards compatibility, open a device for capturing. see [Libpcap Manpage](https://www.tcpdump.org/manpages/pcap_open_live.3pcap.html)
@@ -152,9 +165,9 @@ extern "C" {
     /// set or clear non-blocking mode on a pcap_t
     pub fn pcap_setnonblock(p: *mut pcap_t, nonblock: c_int, errbuf: *mut errbuf) -> c_int;
     /// transmit a packet 
-    pub fn pcap_inject(p: *mut pcap_t, buf: *const c_void, size: usize) -> c_int; // size = size_t == architecture uint size == usize
+    pub fn pcap_inject(p: *mut pcap_t, buf: *const c_void, size: size_t) -> c_int;
     /// transmit a packet 
-    pub fn pcap_sendpacket(p: *mut pcap_t, buf: *const c_uchar, size: c_int) -> c_int; // size = size_t == architecture uint size == usize
+    pub fn pcap_sendpacket(p: *mut pcap_t, buf: *const c_uchar, size: c_int) -> c_int;
     /// get a string for an error or warning status code 
     pub fn pcap_statustostr(error: c_int) -> *const c_char;
     /// convert an errno value to a string
@@ -195,12 +208,70 @@ extern "C" {
     pub fn pcap_major_version(p: *mut pcap_t) -> c_int;
     /// get the minor version of the file format version for a ``savefile''
     pub fn pcap_minor_version(p: *mut pcap_t) -> c_int;
-
-
-
-
+    /// 
+    pub fn pcap_file(p: *mut pcap_t) -> FILE;
+    /// 
+    pub fn pcap_fileno(p: *mut pcap_t) -> c_int;
+    /// 
+    pub fn pcap_wsockinit(something: c_void) -> c_int;
+    /// 
+    pub fn pcap_dump_open(p: *mut pcap_t, something: *const c_char) -> *mut pcap_dumper_t;
+    /// 
+    pub fn pcap_dump_fopen(p: *mut pcap_t, fp: *mut FILE) -> *mut pcap_dumper_t;
+    /// 
+    pub fn pcap_dump_open_append(p: *mut pcap_t, something: *const c_char) -> *mut pcap_dumper_t;
+    /// 
+    pub fn pcap_dump_file(something: *mut pcap_dumper_t) -> *mut FILE;
+    /// 
+    pub fn pcap_dump_ftell(something: *mut pcap_dumper_t) -> c_long;
+    /// 
+    pub fn pcap_dump_flush(something: *mut pcap_dumper_t) -> c_int;
+    /// 
+    pub fn pcap_dump_close(something: *mut pcap_dumper_t) -> c_void;
+    /// 
+    pub fn pcap_dump(something: *mut c_uchar, something: *const pcap_pkthdr, something: *const c_uchar) -> c_void;
     /// get a list of devices that can be opened for a live capture
     pub fn pcap_findalldevs(alldevsp: *mut *mut pcap_if_t, errbuf: *mut errbuf) -> c_int;
     /// free list of devices
-    pub fn pcap_freedalldevs(alldevsyou: *mut pcap_if_t) -> c_void;
+    pub fn pcap_freedalldevs(alldevs: *mut pcap_if_t) -> c_void;
+    /// 
+    pub fn pcap_lib_version(something: c_void) -> *const c_char;
+    /// 
+    pub fn bpf_filter(f: *const bpf_insn, soemthing: *const c_uchar, something: c_uint, something: c_uint) -> c_uint;
+    /// 
+    pub fn bpf_validate(f: *const bpf_insn, len: c_int) -> c_int;
+    /// 
+    pub fn bpf_image(f: *const bpf_insn, something: c_int) -> *mut c_char;
+    /// 
+    pub fn bpf_dump(something: *const bpf_program, something: c_int) -> c_void;
+    /// 
+    pub fn pcap_setbuff(p: *mut pcap_t, dim: c_int) -> c_int;
+    /// 
+    pub fn pcap_setmode(p: *mut pcap_t, mode: c_int) -> c_int;
+    /// 
+    pub fn pcap_setmintocopy(p: *mut pcap_t, size: c_int) -> c_int;
+    /// 
+    pub fn pcap_getevent(p: *mut pcap_t) -> HANDLE;
+    /// 
+    pub fn pcap_oid_get_request(p: *mut pcap_t, something: bpf_u_int32, something: *mut c_void, something: *mut size_t) -> c_int;
+    /// 
+    pub fn pcap_oid_set_request(p: *mut pcap_t, something: bpf_u_int32, something: *const c_void, something: *mut size_t) -> c_int;
+    /// 
+    pub fn pcap_sendqueue_alloc(memsize: c_uint) -> *mut pcap_send_queue;
+    /// 
+    pub fn pcap_sendqueue_destroy(queue: *mut pcap_send_queue) -> c_void;
+    /// 
+    pub fn pcap_sendqueue_queue(queue: *mut pcap_send_queue, pkt_header: *const pcap_pkthdr, pkt_data: *const c_uchar) -> c_int;
+    /// 
+    pub fn pcap_sendqueue_transmit(p: *mut pcap_t, queue: *mut pcap_send_queue, sync: c_int) -> c_uint;
+    /// 
+    pub fn pcap_stats_ex(p: *mut pcap_t, pcap_stat_size: *mut c_int) -> *mut pcap_stat;
+    /// 
+    pub fn pcap_setuserbuffer(p: *mut pcap_t, size: c_int) -> c_int;
+    /// 
+    pub fn pcap_live_dump(p: *mut pcap_t, filename: *mut c_char, maxsize: c_int, maxpacks: c_int) -> c_int;
+    /// 
+    pub fn pcap_live_dump_ended(p: *mut pcap_t, sync: c_int) -> c_int;
+    /// 
+    pub fn pcap_start_oem(err_str: *mut c_char, flags: c_int) -> c_int;
 }
