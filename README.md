@@ -1,6 +1,9 @@
 # npcap_sys
 Bindings to Npcap Windows API
 
+## NOTICE!
+- This library is under heavy and rapid development. It is not recommended to fork or clone this library at this time as the repo will be rebased before v0.1.0 is stabilized
+
 ## License Notice
 - Npcap is not an open source software project, please review notices and licenses provided in below links
   - [Npcap License Snapshot](../../blob/master/NPCAP_LICENSE)
