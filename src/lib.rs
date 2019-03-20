@@ -27,7 +27,9 @@
 //! [Npcap API](https://nmap.org/npcap/guide/npcap-devguide.html#npcap-api) and 
 //! [Man Pcap](https://nmap.org/npcap/guide/wpcap/pcap.html). The included documentation is a 
 //! snapshot of the current documentation at the time of the writing this library. 
-//! For up to date documentation, see [Npcap Guide](https://nmap.org/npcap/guide/).
+//! For up to date documentation, see [Npcap Guide](https://nmap.org/npcap/guide/). For 
+//! legacy documentation or backwards compatible function documentation, see 
+//! [Libcap Manpage](https://www.tcpdump.org/manpages/pcap.3pcap.html)
 //! 
 //! This library depends on Npcap being installed for runtime operation. For compiling this 
 //! library, the 
@@ -70,5 +72,8 @@ pub extern crate winapi;
 pub extern crate libc;
 
 mod npcap;
-pub mod safe;
+
 pub use npcap::pcap::pcap::*;
+
+#[cfg(feature = "safe")]
+pub mod safe;
