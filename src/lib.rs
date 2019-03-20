@@ -29,7 +29,8 @@
 //! snapshot of the current documentation at the time of the writing this library. 
 //! For up to date documentation, see [Npcap Guide](https://nmap.org/npcap/guide/). For 
 //! legacy documentation or backwards compatible function documentation, see 
-//! [Libcap Manpage](https://www.tcpdump.org/manpages/pcap.3pcap.html)
+//! [Libcap Manpage](https://www.tcpdump.org/manpages/pcap.3pcap.html) and 
+//! [Winpcap Docs](https://www.winpcap.org/docs/docs_412/html/group__wpcapfunc.html)
 //! 
 //! This library depends on Npcap being installed for runtime operation. For compiling this 
 //! library, the 

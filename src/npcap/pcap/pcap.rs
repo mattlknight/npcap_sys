@@ -26,15 +26,12 @@
 // #include <remote-ext.h>
 //
 //! Npcap SDK wpcap.lib(dll) Public API bindings
+//! 
 use winapi::ctypes::{c_char, c_int, c_long, c_uchar, c_uint, c_void};
 use winapi::shared::ws2def::{SOCKADDR};
 use winapi::um::winnt::{HANDLE};
 use winapi::um::winsock2::{timeval};
 use super::bpf::{bpf_u_int32, bpf_program, bpf_insn};
-// use winapi::um::{minwinbase, winsock2};
-
-pub const PCAP_VERSION_MAJOR: usize = 2;
-pub const PCAP_VERSION_MINOR: usize = 4;
 pub const PCAP_ERRBUF_SIZE: usize = 256;
 pub type errbuf = [c_char; PCAP_ERRBUF_SIZE];
 pub type size_t = usize;
@@ -186,7 +183,7 @@ extern "C" {
     pub fn pcap_offline_filter(fp: *const bpf_program, h: *const pcap_pkthdr, pkt: *const c_uchar) -> c_int;
     /// get link-layer header type for a pcap_t
     pub fn pcap_datalink(p: *mut pcap_t) -> c_int;
-    /// 
+    /// FIXME: Missing documentation in Pcap and Libpcap manpages
     pub fn pcap_datalink_ext(p: *mut pcap_t) -> c_int;
     /// get a list of link-layer header types for a device 
     pub fn pcap_list_datalinks(p: *mut pcap_t, dlt_buf: *mut *mut c_int) -> c_int;
@@ -208,70 +205,68 @@ extern "C" {
     pub fn pcap_major_version(p: *mut pcap_t) -> c_int;
     /// get the minor version of the file format version for a ``savefile''
     pub fn pcap_minor_version(p: *mut pcap_t) -> c_int;
-    /// 
+    /// get the FILE\ * for a pcap_t opened for a ``savefile'' 
     pub fn pcap_file(p: *mut pcap_t) -> FILE;
-    /// 
+    /// get the file descriptor for a live capture 
     pub fn pcap_fileno(p: *mut pcap_t) -> c_int;
-    /// 
-    pub fn pcap_wsockinit(something: c_void) -> c_int;
-    /// 
-    pub fn pcap_dump_open(p: *mut pcap_t, something: *const c_char) -> *mut pcap_dumper_t;
-    /// 
+    /// FIXME: Missing documentation in Pcap and Libpcap manpages
+    pub fn pcap_wsockinit(void_: c_void) -> c_int;
+    /// open a pcap_dumper_t for a ``savefile``, given a pathname 
+    pub fn pcap_dump_open(p: *mut pcap_t, fname: *const c_char) -> *mut pcap_dumper_t;
+    /// open a pcap_dumper_t for a ``savefile``, given a FILE\ *
     pub fn pcap_dump_fopen(p: *mut pcap_t, fp: *mut FILE) -> *mut pcap_dumper_t;
-    /// 
-    pub fn pcap_dump_open_append(p: *mut pcap_t, something: *const c_char) -> *mut pcap_dumper_t;
-    /// 
-    pub fn pcap_dump_file(something: *mut pcap_dumper_t) -> *mut FILE;
-    /// 
-    pub fn pcap_dump_ftell(something: *mut pcap_dumper_t) -> c_long;
-    /// 
-    pub fn pcap_dump_flush(something: *mut pcap_dumper_t) -> c_int;
-    /// 
-    pub fn pcap_dump_close(something: *mut pcap_dumper_t) -> c_void;
-    /// 
-    pub fn pcap_dump(something: *mut c_uchar, something: *const pcap_pkthdr, something: *const c_uchar) -> c_void;
+    /// open a pcap_dumper_t for an existing ``savefile``, given a FILE\ *, assuming parameters match
+    pub fn pcap_dump_open_append(p: *mut pcap_t, fname: *const c_char) -> *mut pcap_dumper_t;
+    /// get the FILE\ * for a pcap_dumper_t opened for a ``savefile'' 
+    pub fn pcap_dump_file(p: *mut pcap_dumper_t) -> *mut FILE;
+    /// get current file position for a pcap_dumper_t
+    pub fn pcap_dump_ftell(p: *mut pcap_dumper_t) -> c_long;
+    /// flush buffered packets written to a pcap_dumper_t to the ``savefile'' 
+    pub fn pcap_dump_flush(p: *mut pcap_dumper_t) -> c_int;
+    /// close a pcap_dumper_t
+    pub fn pcap_dump_close(p: *mut pcap_dumper_t) -> c_void;
+    /// write packet to a pcap_dumper_t
+    pub fn pcap_dump(user: *mut c_uchar, h: *const pcap_pkthdr, sp: *const c_uchar) -> c_void;
     /// get a list of devices that can be opened for a live capture
     pub fn pcap_findalldevs(alldevsp: *mut *mut pcap_if_t, errbuf: *mut errbuf) -> c_int;
     /// free list of devices
     pub fn pcap_freedalldevs(alldevs: *mut pcap_if_t) -> c_void;
-    /// 
-    pub fn pcap_lib_version(something: c_void) -> *const c_char;
-    /// 
-    pub fn bpf_filter(f: *const bpf_insn, soemthing: *const c_uchar, something: c_uint, something: c_uint) -> c_uint;
-    /// 
+    /// get library version string
+    pub fn pcap_lib_version(void_: c_void) -> *const c_char;
+    /// FIXME: Missing documentation in Pcap and Libpcap manpages
+    pub fn bpf_filter(f: *const bpf_insn, pkt: *const c_uchar, something: c_uint, something: c_uint) -> c_uint;
+    /// FIXME: Missing documentation in Pcap and Libpcap manpages
     pub fn bpf_validate(f: *const bpf_insn, len: c_int) -> c_int;
-    /// 
+    /// FIXME: Missing documentation in Pcap and Libpcap manpages
     pub fn bpf_image(f: *const bpf_insn, something: c_int) -> *mut c_char;
-    /// 
+    /// FIXME: Missing documentation in Pcap and Libpcap manpages
     pub fn bpf_dump(something: *const bpf_program, something: c_int) -> c_void;
-    /// 
+    /// Sets the size of the kernel buffer associated with an adapter.
     pub fn pcap_setbuff(p: *mut pcap_t, dim: c_int) -> c_int;
-    /// 
+    /// Sets the working mode of the interface.
     pub fn pcap_setmode(p: *mut pcap_t, mode: c_int) -> c_int;
-    /// 
+    /// Sets the minumum amount of data received by the kernel in a single call.
     pub fn pcap_setmintocopy(p: *mut pcap_t, size: c_int) -> c_int;
-    /// 
+    /// Returns the handle of the event associated with the interface
     pub fn pcap_getevent(p: *mut pcap_t) -> HANDLE;
-    /// 
+    /// Send an OID request to the underlying NDIS drivers
     pub fn pcap_oid_get_request(p: *mut pcap_t, something: bpf_u_int32, something: *mut c_void, something: *mut size_t) -> c_int;
-    /// 
+    /// Send an OID request to the underlying NDIS drivers
     pub fn pcap_oid_set_request(p: *mut pcap_t, something: bpf_u_int32, something: *const c_void, something: *mut size_t) -> c_int;
-    /// 
+    /// Allocate a send queue as a buffer of memsize bytes.
     pub fn pcap_sendqueue_alloc(memsize: c_uint) -> *mut pcap_send_queue;
-    /// 
+    /// Free the allocated send queue
     pub fn pcap_sendqueue_destroy(queue: *mut pcap_send_queue) -> c_void;
-    /// 
+    /// adds a packet at the end of the send queue pointed by the queue parameter.
     pub fn pcap_sendqueue_queue(queue: *mut pcap_send_queue, pkt_header: *const pcap_pkthdr, pkt_data: *const c_uchar) -> c_int;
-    /// 
+    /// transmits the content of a queue to the wire
     pub fn pcap_sendqueue_transmit(p: *mut pcap_t, queue: *mut pcap_send_queue, sync: c_int) -> c_uint;
-    /// 
+    /// extends the pcap_stats() allowing to return more statistical parameters than the old call.
     pub fn pcap_stats_ex(p: *mut pcap_t, pcap_stat_size: *mut c_int) -> *mut pcap_stat;
-    /// 
+    /// Sets the size of the buffer that accepts packets from the kernel driver.
     pub fn pcap_setuserbuffer(p: *mut pcap_t, size: c_int) -> c_int;
-    /// 
+    /// Save a capture to file.
     pub fn pcap_live_dump(p: *mut pcap_t, filename: *mut c_char, maxsize: c_int, maxpacks: c_int) -> c_int;
-    /// 
+    /// Return the status of the kernel dump process, i.e. tells if one of the limits defined with pcap_live_dump() has been reached. 
     pub fn pcap_live_dump_ended(p: *mut pcap_t, sync: c_int) -> c_int;
-    /// 
-    pub fn pcap_start_oem(err_str: *mut c_char, flags: c_int) -> c_int;
 }
