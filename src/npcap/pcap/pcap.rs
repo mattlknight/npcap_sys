@@ -1,5 +1,7 @@
 // MIT License
+//
 // Copyright (c) 2019 Matthew Knight
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -8,6 +10,7 @@
 // furnished to do so, subject to the following conditions:
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -17,20 +20,19 @@
 // SOFTWARE.
 //
 // #include <pcap/export-defs.h>
-// #include <pcap-stdinc.h>
-// #include <stdio.h>
+// #include <pcap/dlt.h>
 //
 //! Npcap SDK wpcap.lib Bindings
 use libc::FILE;
 use winapi::ctypes::{c_char, c_int, c_uchar, c_uint, c_void};
 use winapi::shared::ws2def::{SOCKADDR};
 use winapi::um::winsock2::{timeval};
+use super::bpf::{bpf_u_int32, bpf_program};
 // use winapi::um::{minwinbase, winsock2};
 
 pub const PCAP_VERSION_MAJOR: usize = 2;
 pub const PCAP_VERSION_MINOR: usize = 4;
 pub const PCAP_ERRBUF_SIZE: usize = 256;
-
 pub type errbuf = [c_char; PCAP_ERRBUF_SIZE];
 STRUCT!{struct pcap_addr {
     next: *mut pcap_addr,
@@ -43,7 +45,6 @@ STRUCT!{struct pcap {
     _private: [u8; 0], // pcap is a private struct type, not in public api, used via an opaque pointer
 }}
 pub type pcap_t = pcap;
-pub type bpf_u_int32 = c_uint;
 STRUCT!{struct pcap_if {
     next: *mut pcap_if,
     name: *mut c_char,
@@ -58,8 +59,20 @@ STRUCT!{struct pcap_pkthdr {
     len: bpf_u_int32,
 }}
 pub type pcap_handler = extern fn(user: *mut c_uchar, h: *const pcap_pkthdr, bytes: *const c_uchar) -> c_void;
-
-#[link(name = "wpcap1")]
+STRUCT!{struct pcap_stat {
+    ps_recv: c_uint,
+    ps_drop: c_uint,
+    ps_ifdrop: c_uint,
+    ps_capt: c_uint,
+    ps_sent: c_uint,
+    ps_netdrop: c_uint,
+}}
+ENUM!{enum pcap_direction_t {
+    PCAP_D_INOUT = 0,
+    PCAP_D_IN,
+    PCAP_D_OUT,
+}}
+#[link(name = "wpcap")]
 extern "C" {
     /// get first non-loopback device on that list (from pcap_findalldevs)
     pub fn pcap_lookupdev(errbuf: *mut errbuf) -> *mut c_char;
@@ -125,6 +138,38 @@ extern "C" {
     pub fn pcap_next_ex(p: *mut pcap_t, pkt_header: *mut *mut pcap_pkthdr, pkt_data: *const *const c_uchar) -> c_int;
     /// prematurely terminate the loop in pcap_dispatch() or pcap_loop() 
     pub fn pcap_breakloop(p: *mut pcap_t) -> c_void;
+    /// get capture statistics 
+    pub fn pcap_stats(p: *mut pcap_t, ps: *mut pcap_stat) -> c_int;
+    /// set filter for a pcap_t
+    pub fn pcap_setfilter(p: *mut pcap_t, fp: *mut bpf_program) -> c_int;
+    /// specify whether to capture incoming packets, outgoing packets, or both 
+    pub fn pcap_setdirection(p: *mut pcap_t, d: pcap_direction_t) -> c_int;
+    /// get the state of non-blocking mode for a pcap_t
+    pub fn pcap_getnonblock(p: *mut pcap_t, errbuf: *mut errbuf) -> c_int;
+    /// set or clear non-blocking mode on a pcap_t
+    pub fn pcap_setnonblock(p: *mut pcap_t, nonblock: c_int, errbuf: *mut errbuf) -> c_int;
+    /// transmit a packet 
+    pub fn pcap_inject(p: *mut pcap_t, buf: *const c_void, size: usize) -> c_int; // size = size_t == architecture uint size == usize
+    /// transmit a packet 
+    pub fn pcap_sendpacket(p: *mut pcap_t, buf: *const c_uchar, size: c_int) -> c_int; // size = size_t == architecture uint size == usize
+    /// get a string for an error or warning status code 
+    pub fn pcap_statustostr(error: c_int) -> *const c_char;
+    /// convert an errno value to a string
+    pub fn pcap_strerror(error: c_int) -> *const c_char;
+    /// get libpcap error message text 
+    pub fn pcap_geterr(p: *mut pcap_t) -> *mut c_char;
+    /// print libpcap error message text 
+    pub fn pcap_perror(p: *mut pcap_t, prefix: *const c_char) -> c_void;
+    /// compile filter expression to a pseudo-machine-language code program 
+    pub fn pcap_compile(p: *mut pcap_t, fp: *mut bpf_program, str_: *const c_char, optimize: c_int, netmask: bpf_u_int32) -> c_int;
+    /// Compile a packet filter without the need of opening an adapter.
+    pub fn pcap_compile_nopcap(snaplen_arg: c_int, linktype_arg: c_int, program: *mut bpf_program, buf: *mut c_char, optimize: c_int, mask: bpf_u_int32) -> c_int;
+    /// free a filter program 
+    pub fn pcap_freecode(fp: *mut bpf_program) -> c_void;
+    /// apply a filter program to a packet 
+    pub fn pcap_offline_filter(fp: *const bpf_program, h: *const pcap_pkthdr, pkt: *const c_uchar) -> c_int;
+
+
 
 
     /// get a list of devices that can be opened for a live capture
