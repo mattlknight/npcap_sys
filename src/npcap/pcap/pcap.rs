@@ -20,9 +20,12 @@
 // SOFTWARE.
 //
 // #include <pcap/export-defs.h>
-// #include <pcap/dlt.h>
+// #include <pcap-stdinc.h>
+// #include <pcap/bpf.h>
+// #include <stdio.h>
+// #include <remote-ext.h>
 //
-//! Npcap SDK wpcap.lib Bindings
+//! Npcap SDK wpcap.lib(dll) Public API bindings
 use libc::FILE;
 use winapi::ctypes::{c_char, c_int, c_uchar, c_uint, c_void};
 use winapi::shared::ws2def::{SOCKADDR};
@@ -168,6 +171,30 @@ extern "C" {
     pub fn pcap_freecode(fp: *mut bpf_program) -> c_void;
     /// apply a filter program to a packet 
     pub fn pcap_offline_filter(fp: *const bpf_program, h: *const pcap_pkthdr, pkt: *const c_uchar) -> c_int;
+    /// get link-layer header type for a pcap_t
+    pub fn pcap_datalink(p: *mut pcap_t) -> c_int;
+    /// 
+    pub fn pcap_datalink_ext(p: *mut pcap_t) -> c_int;
+    /// get a list of link-layer header types for a device 
+    pub fn pcap_list_datalinks(p: *mut pcap_t, dlt_buf: *mut *mut c_int) -> c_int;
+    /// set link-layer header type for a device 
+    pub fn pcap_set_datalink(p: *mut pcap_t, dlt: c_int) -> c_int;
+    /// free list of link-layer header types for a device
+    pub fn pcap_free_datalinks(dlt_list: *mut c_int) -> c_void;
+    /// get link-layer header type corresponding to a name 
+    pub fn pcap_datalink_name_to_val(name: *const c_char) -> c_int;
+    /// get name for a link-layer header type 
+    pub fn pcap_datalink_val_to_name(dlt: c_int) -> *const c_char;
+    /// get description for a link-layer header type 
+    pub fn pcap_datalink_val_to_description(dlt: c_int) -> *const c_char;
+    /// get the snapshot length for a pcap_t
+    pub fn pcap_snapshot(p: *mut pcap_t) -> c_int;
+    /// determine whether a ``savefile'' being read came from a machine with the opposite byte order 
+    pub fn pcap_is_swapped(p: *mut pcap_t) -> c_int;
+    /// get the major version of the file format version for a ``savefile''
+    pub fn pcap_major_version(p: *mut pcap_t) -> c_int;
+    /// get the minor version of the file format version for a ``savefile''
+    pub fn pcap_minor_version(p: *mut pcap_t) -> c_int;
 
 
 
