@@ -230,7 +230,7 @@ extern "C" {
     /// get a list of devices that can be opened for a live capture
     pub fn pcap_findalldevs(alldevsp: *mut *mut pcap_if_t, errbuf: *mut errbuf) -> c_int;
     /// free list of devices
-    pub fn pcap_freedalldevs(alldevs: *mut pcap_if_t) -> c_void;
+    pub fn pcap_freealldevs(alldevs: *mut pcap_if_t) -> c_void;
     /// get library version string
     pub fn pcap_lib_version(void_: c_void) -> *const c_char;
     /// FIXME: Missing documentation in Pcap and Libpcap manpages
