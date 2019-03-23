@@ -63,7 +63,7 @@ STRUCT!{struct pcap_pkthdr {
     caplen: bpf_u_int32,
     len: bpf_u_int32,
 }}
-pub type pcap_handler = extern fn(user: *mut c_uchar, h: *const pcap_pkthdr, bytes: *const c_uchar) -> c_void;
+pub type pcap_handler = extern fn(user: *mut c_uchar, h: *const pcap_pkthdr, bytes: *const c_uchar);
 STRUCT!{struct pcap_stat {
     ps_recv: c_uint,
     ps_drop: c_uint,
@@ -118,7 +118,7 @@ extern "C" {
     /// get list of available time stamp types for a not-yet-activated pcap_t for live capture 
     pub fn pcap_list_tstamp_types(p: *mut pcap_t, tstamp_typesp: *mut *mut c_int) -> c_int;
     /// free list of available time stamp types 
-    pub fn pcap_free_tstamp_types(tstamp_types: *mut c_int) -> c_void;
+    pub fn pcap_free_tstamp_types(tstamp_types: *mut c_int);
     /// get time stamp type corresponding to a name
     pub fn pcap_tstamp_type_name_to_val(name: *const c_char) -> c_int;
     /// get name for a time stamp type
@@ -140,7 +140,7 @@ extern "C" {
     /// open a pcap_t for a ``savefile'', given a windows osfhandle 
     pub fn pcap_hopen_offline(osfd: isize, errbuf: *mut errbuf) -> *mut pcap_t; //osfd is an intptr_t which == isize
     /// close a pcap_t
-    pub fn pcap_close(p: *mut pcap_t) -> c_void;
+    pub fn pcap_close(p: *mut pcap_t);
     /// read packets from a pcap_t until an interrupt or error occurs 
     pub fn pcap_loop(p: *mut pcap_t, cnt: c_int, callback: *mut pcap_handler, user: *mut c_uchar) -> c_int;
     /// read a bufferful of packets from a pcap_t open for a live capture or the full set of packets from a pcap_t open for a ``savefile'' 
@@ -150,7 +150,7 @@ extern "C" {
     /// read the next packet from a pcap_t with an error indication on an error 
     pub fn pcap_next_ex(p: *mut pcap_t, pkt_header: *mut *mut pcap_pkthdr, pkt_data: *const *const c_uchar) -> c_int;
     /// prematurely terminate the loop in pcap_dispatch() or pcap_loop() 
-    pub fn pcap_breakloop(p: *mut pcap_t) -> c_void;
+    pub fn pcap_breakloop(p: *mut pcap_t);
     /// get capture statistics 
     pub fn pcap_stats(p: *mut pcap_t, ps: *mut pcap_stat) -> c_int;
     /// set filter for a pcap_t
@@ -172,13 +172,13 @@ extern "C" {
     /// get libpcap error message text 
     pub fn pcap_geterr(p: *mut pcap_t) -> *mut c_char;
     /// print libpcap error message text 
-    pub fn pcap_perror(p: *mut pcap_t, prefix: *const c_char) -> c_void;
+    pub fn pcap_perror(p: *mut pcap_t, prefix: *const c_char);
     /// compile filter expression to a pseudo-machine-language code program 
     pub fn pcap_compile(p: *mut pcap_t, fp: *mut bpf_program, str_: *const c_char, optimize: c_int, netmask: bpf_u_int32) -> c_int;
     /// Compile a packet filter without the need of opening an adapter.
     pub fn pcap_compile_nopcap(snaplen_arg: c_int, linktype_arg: c_int, program: *mut bpf_program, buf: *mut c_char, optimize: c_int, mask: bpf_u_int32) -> c_int;
     /// free a filter program 
-    pub fn pcap_freecode(fp: *mut bpf_program) -> c_void;
+    pub fn pcap_freecode(fp: *mut bpf_program);
     /// apply a filter program to a packet 
     pub fn pcap_offline_filter(fp: *const bpf_program, h: *const pcap_pkthdr, pkt: *const c_uchar) -> c_int;
     /// get link-layer header type for a pcap_t
@@ -190,7 +190,7 @@ extern "C" {
     /// set link-layer header type for a device 
     pub fn pcap_set_datalink(p: *mut pcap_t, dlt: c_int) -> c_int;
     /// free list of link-layer header types for a device
-    pub fn pcap_free_datalinks(dlt_list: *mut c_int) -> c_void;
+    pub fn pcap_free_datalinks(dlt_list: *mut c_int);
     /// get link-layer header type corresponding to a name 
     pub fn pcap_datalink_name_to_val(name: *const c_char) -> c_int;
     /// get name for a link-layer header type 
@@ -210,7 +210,7 @@ extern "C" {
     /// get the file descriptor for a live capture 
     pub fn pcap_fileno(p: *mut pcap_t) -> c_int;
     /// FIXME: Missing documentation in Pcap and Libpcap manpages
-    pub fn pcap_wsockinit(void_: c_void) -> c_int;
+    pub fn pcap_wsockinit() -> c_int;
     /// open a pcap_dumper_t for a ``savefile``, given a pathname 
     pub fn pcap_dump_open(p: *mut pcap_t, fname: *const c_char) -> *mut pcap_dumper_t;
     /// open a pcap_dumper_t for a ``savefile``, given a FILE\ *
@@ -224,15 +224,15 @@ extern "C" {
     /// flush buffered packets written to a pcap_dumper_t to the ``savefile'' 
     pub fn pcap_dump_flush(p: *mut pcap_dumper_t) -> c_int;
     /// close a pcap_dumper_t
-    pub fn pcap_dump_close(p: *mut pcap_dumper_t) -> c_void;
+    pub fn pcap_dump_close(p: *mut pcap_dumper_t);
     /// write packet to a pcap_dumper_t
-    pub fn pcap_dump(user: *mut c_uchar, h: *const pcap_pkthdr, sp: *const c_uchar) -> c_void;
+    pub fn pcap_dump(user: *mut c_uchar, h: *const pcap_pkthdr, sp: *const c_uchar);
     /// get a list of devices that can be opened for a live capture
     pub fn pcap_findalldevs(alldevsp: *mut *mut pcap_if_t, errbuf: *mut errbuf) -> c_int;
     /// free list of devices
-    pub fn pcap_freealldevs(alldevs: *mut pcap_if_t) -> c_void;
+    pub fn pcap_freealldevs(alldevs: *mut pcap_if_t);
     /// get library version string
-    pub fn pcap_lib_version(void_: c_void) -> *const c_char;
+    pub fn pcap_lib_version() -> *const c_char;
     /// FIXME: Missing documentation in Pcap and Libpcap manpages
     pub fn bpf_filter(f: *const bpf_insn, pkt: *const c_uchar, something: c_uint, something: c_uint) -> c_uint;
     /// FIXME: Missing documentation in Pcap and Libpcap manpages
@@ -240,7 +240,7 @@ extern "C" {
     /// FIXME: Missing documentation in Pcap and Libpcap manpages
     pub fn bpf_image(f: *const bpf_insn, something: c_int) -> *mut c_char;
     /// FIXME: Missing documentation in Pcap and Libpcap manpages
-    pub fn bpf_dump(something: *const bpf_program, something: c_int) -> c_void;
+    pub fn bpf_dump(something: *const bpf_program, something: c_int);
     /// Sets the size of the kernel buffer associated with an adapter.
     pub fn pcap_setbuff(p: *mut pcap_t, dim: c_int) -> c_int;
     /// Sets the working mode of the interface.
@@ -256,7 +256,7 @@ extern "C" {
     /// Allocate a send queue as a buffer of memsize bytes.
     pub fn pcap_sendqueue_alloc(memsize: c_uint) -> *mut pcap_send_queue;
     /// Free the allocated send queue
-    pub fn pcap_sendqueue_destroy(queue: *mut pcap_send_queue) -> c_void;
+    pub fn pcap_sendqueue_destroy(queue: *mut pcap_send_queue);
     /// adds a packet at the end of the send queue pointed by the queue parameter.
     pub fn pcap_sendqueue_queue(queue: *mut pcap_send_queue, pkt_header: *const pcap_pkthdr, pkt_data: *const c_uchar) -> c_int;
     /// transmits the content of a queue to the wire
