@@ -16,6 +16,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 // #include <pcap/pcap.h>
-pub mod bpf;
-pub mod export_defs;
-pub mod pcap;
+mod bpf;
+mod export_defs;
+mod pcap;
+
+pub use bpf::*;
+pub use export_defs::*;
+pub use pcap::*;

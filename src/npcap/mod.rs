@@ -1,4 +1,6 @@
-pub mod pcap;
-pub mod packet32;
-pub mod pcap_stdinc;
-pub mod remote_ext;
+mod pcap;
+mod packet32;
+mod pcap_stdinc;
+mod remote_ext;
+
+pub use pcap::*;

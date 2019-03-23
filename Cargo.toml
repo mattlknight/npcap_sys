@@ -12,6 +12,7 @@ categories = ["network-programming", "external-ffi-bindings", "no-std", "os::win
 readme = "README.md"
 include = ["/src/**/*", "/Cargo.toml", "/LICENSE", "/NPCAP_LICENSE", "/build.rs", "/README.md"]
 build = "build.rs"
+edition = "2018"
 
 [package.metadata.docs.rs]
 features = ["everything"]
@@ -19,14 +20,15 @@ default-target = "x86_64-pc-windows-msvc"
 
 [dependencies]
 libc = "0.2"
+log = "*"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { git = "https://github.com/mattlknight/winapi-rs", branch = "iphlpapi", features = ["impl-default", "in6addr", "inaddr", "iptypes", "minwinbase", "minwindef", "ntdef", "winerror", "winsock2", "ws2def", "ws2ipdef"] }
 
 [features]
 debug = ["impl-debug"]
-default = ["debug", "impl-default", "safe"]
-everything = ["default", "std"]
+default = ["debug", "impl-default", "safe", "std"]
+everything = ["default"]
 impl-debug = []
 impl-default = []
 safe = []

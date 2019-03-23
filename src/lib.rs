@@ -55,15 +55,16 @@
 #![recursion_limit = "2563"]
 #![no_std]
 
-//Uncomment as needed or once minimum Rust version is bumped to 1.18
-//#![cfg_attr(feature = "cargo-clippy", warn(clippy::pedantic))]
-//#![cfg_attr(feature = "cargo-clippy", allow(clippy::absurd_extreme_comparisons, clippy::cast_lossless, clippy::cast_possible_truncation, clippy::cast_possible_wrap, clippy::cast_precision_loss, clippy::cast_ptr_alignment, clippy::cast_sign_loss, clippy::const_static_lifetime, clippy::doc_markdown, clippy::empty_enum, clippy::erasing_op, clippy::excessive_precision, clippy::expl_impl_clone_on_copy, clippy::identity_op, clippy::if_not_else, clippy::many_single_char_names, clippy::module_inception, clippy::cast_possible_truncation, clippy::too_many_arguments, clippy::transmute_int_to_float, clippy::trivially_copy_pass_by_ref, clippy::unreadable_literal, clippy::unseparated_literal_suffix, clippy::used_underscore_binding))]
+#![cfg_attr(feature = "cargo-clippy", warn(clippy::pedantic))]
+#![cfg_attr(feature = "cargo-clippy", allow(clippy::absurd_extreme_comparisons, clippy::cast_lossless, clippy::cast_possible_truncation, clippy::cast_possible_wrap, clippy::cast_precision_loss, clippy::cast_ptr_alignment, clippy::cast_sign_loss, clippy::const_static_lifetime, clippy::doc_markdown, clippy::empty_enum, clippy::erasing_op, clippy::excessive_precision, clippy::expl_impl_clone_on_copy, clippy::identity_op, clippy::if_not_else, clippy::many_single_char_names, clippy::module_inception, clippy::cast_possible_truncation, clippy::too_many_arguments, clippy::transmute_int_to_float, clippy::trivially_copy_pass_by_ref, clippy::unreadable_literal, clippy::unseparated_literal_suffix, clippy::used_underscore_binding, clippy::module_name_repetitions))]
 
 #[macro_use]
 mod macros;
 
 #[cfg(feature = "std")]
 extern crate std;
+
+extern crate log;
 
 /// Hack for exported macros
 #[doc(hidden)]
@@ -73,8 +74,13 @@ pub extern crate winapi;
 pub extern crate libc;
 
 mod npcap;
+mod util;
 
+#[cfg(not(feature = "safe"))]
 pub use npcap::pcap::pcap::*;
 
-#[cfg(feature = "safe")]
-pub mod safe;
+#[cfg(all(feature = "safe", feature = "std"))]
+mod safe;
+
+#[cfg(all(feature = "safe", feature = "std"))]
+pub use safe::*;
