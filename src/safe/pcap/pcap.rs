@@ -22,23 +22,26 @@ impl Pcap {
 
     pub fn get_device_list(&mut self) -> Result<&[PcapDev], Box<Error>> {
         let mut all_devs: *mut npcap::pcap_if_t = std::ptr::null_mut();
-
         self.err_buf.clear();
 
         debug!("pcap_findalldevs()");
-
         let result = unsafe { npcap::pcap_findalldevs(&mut all_devs, self.err_buf.buf_ptr_mut()) };
+        
         match result {
-            0   => {},
+            0   => { trace!("pcap_findalldevs() -> 0"); },
             -1  => {
-                debug!("pcap_freealldevs()");
+                error!("pcap_freealldevs() -> -1");
                 unsafe { npcap::pcap_freealldevs(all_devs) };
                 return Err(format!("{}", self.err_buf).into());
             },
-            _   => unreachable!(),
+            _   => {
+                error!("pcap_freealldevs() -> {}", result);
+                unsafe { npcap::pcap_freealldevs(all_devs) };
+                return Err(format!("{}", self.err_buf).into());
+            },
         }
 
-        info!("Looping through devices");
+        info!("Looping through all_devs");
         let mut device = all_devs; // Initially set device == start of all_devs
         loop {
             if device.is_null() {
@@ -56,7 +59,6 @@ impl Pcap {
             };
 
             self.pcap_devs.push(pcap_dev);
-
             device = this_device.next;
         }
 

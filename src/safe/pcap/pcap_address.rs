@@ -25,10 +25,6 @@ impl PcapAddress {
         let af = sockaddr.sa_family;
         let data = unsafe { &*(&sockaddr.sa_data as *const [i8] as *const [u8]) };
 
-        // debug!("af == {:?}", af);
-        // debug!("data == {:?}", data);
-        // debug!("data.len() == {:?}", data.len());
-
         match af as c_int {
             AF_INET => {
                 let mut bytes: [u8; 4] = Default::default();
@@ -48,9 +44,13 @@ impl PcapAddress {
     }
 
     pub fn from_pcap_addr(addr: npcap::pcap_addr) -> Result<Self,Box<Error>> {
+        debug!("convert pcap_addr to address");
         let address = Self::winapi_sockaddr_to_addr(addr.addr)?;
+        debug!("convert pcap_addr to netmask");
         let netmask = Self::winapi_sockaddr_to_addr(addr.netmask)?;
+        debug!("convert pcap_addr to broadcast");
         let broadcast = Self::winapi_sockaddr_to_addr(addr.broadaddr)?;
+        debug!("convert pcap_addr to destination");
         let destination = Self::winapi_sockaddr_to_addr(addr.dstaddr)?;
         Ok(Self {
             address,
@@ -60,13 +60,6 @@ impl PcapAddress {
         })
     }
 }
-
-// impl fmt::Display for PcapAddress {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         f.write_str("ErrBuf [")?;
-//         f.write_str("]")
-//     }
-// }
 
 impl fmt::Debug for PcapAddress {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

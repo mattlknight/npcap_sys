@@ -17,15 +17,6 @@ pub struct PcapDev {
 }
 
 impl PcapDev {
-    pub fn new() -> Self {
-        Self { 
-            name: "".to_owned(),
-            description: "".to_owned(),
-            addresses: Vec::new(),
-            flags: 0
-        }
-    }
-
     pub fn from_pcap_if(dev: npcap::pcap_if_t) -> Result<Self, Box<Error>> {
         trace!("Converting device name to string");
         let name = match dev.name.is_null() {
@@ -39,12 +30,12 @@ impl PcapDev {
             false => str_from_c_str_ptr(dev.description)?,
         };
 
+        debug!("Looping through dev->addresses");
         let mut addresses = Vec::new();
         let mut pcap_if_address = dev.addresses;
         loop {
-
             if pcap_if_address.is_null() {
-                debug!("pcap_if_address.is_null() breaking loop");
+                trace!("pcap_if_address.is_null() breaking loop");
                 break;
             }
 
@@ -58,7 +49,6 @@ impl PcapDev {
             };
 
             addresses.push(pcap_addr);
-
             pcap_if_address = this_address.next;
         }
 
