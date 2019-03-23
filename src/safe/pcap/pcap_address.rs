@@ -1,8 +1,8 @@
 use crate::npcap;
-use std::boxed::Box;
+// use std::boxed::Box;
 use std::error::Error;
 use std::fmt;
-use std::result::Result;
+// use std::result::Result;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use log::debug;
 use winapi::ctypes::{c_int};

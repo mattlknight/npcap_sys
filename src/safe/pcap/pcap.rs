@@ -1,8 +1,10 @@
 use crate::npcap;
 use crate::safe::{ErrBuf, PcapDev};
 use crate::util::str_from_c_str_ptr;
-use std::boxed::Box;
-use std::vec::Vec;
+// use std::boxed::Box;
+// use std::fmt::format;
+// use std::vec::Vec;
+use std::error::Error;
 use log::{debug, error, info, trace};
 
 pub struct Pcap {
@@ -18,38 +20,30 @@ impl Pcap {
         }
     }
 
-    pub fn get_device_list(&mut self) -> Result<&[PcapDev], Box<std::error::Error>> {
-        let mut all_devs: *mut npcap::pcap_if_t = unsafe { std::mem::uninitialized() };
-        let all_devs_ptr: *mut *mut npcap::pcap_if_t = &mut all_devs;
-        debug!("{:?}", all_devs);
-        debug!("{:?}", all_devs_ptr);
+    pub fn get_device_list(&mut self) -> Result<&[PcapDev], Box<Error>> {
+        let mut all_devs: *mut npcap::pcap_if_t = std::ptr::null_mut();
 
         self.err_buf.clear();
 
-        debug!("\npcap_findalldevs()");
-        unsafe { match npcap::pcap_findalldevs(all_devs_ptr, self.err_buf.buf_ptr_mut()) {
+        debug!("pcap_findalldevs()");
+
+        let result = unsafe { npcap::pcap_findalldevs(&mut all_devs, self.err_buf.buf_ptr_mut()) };
+        match result {
             0   => {},
-            -1  => panic!("{}", self.err_buf),
+            -1  => {
+                debug!("pcap_freealldevs()");
+                unsafe { npcap::pcap_freealldevs(all_devs) };
+                return Err(format!("{}", self.err_buf).into());
+            },
             _   => unreachable!(),
-        }}
-
-        debug!("{:?}", all_devs);
-        debug!("{:?}", all_devs_ptr);
-
+        }
 
         info!("Looping through devices");
         let mut device = all_devs; // Initially set device == start of all_devs
         loop {
-            debug!("{:?}", all_devs);
-            debug!("{:?}", all_devs_ptr);
-            debug!("{:?}", device);
-
             if device.is_null() {
-                debug!("device.is_null() breaking loop");
+                trace!("device.is_null() breaking loop");
                 break;
-            }
-            if all_devs == device {
-                debug!("all_devs == device == {:?}", all_devs);
             }
 
             let this_device = unsafe { (*device) };
@@ -66,14 +60,9 @@ impl Pcap {
             device = this_device.next;
         }
 
-        
-        debug!("{:?}", all_devs);
-        debug!("{:?}", all_devs_ptr);
-        debug!("{:?}", device);
-        debug!("Freeing device list");
+        debug!("pcap_freealldevs()");
         unsafe { npcap::pcap_freealldevs(all_devs) };
-
-        debug!("All devs should be freed");        
+        trace!("C all_devs should be freed");        
 
         Ok(&self.pcap_devs)
     }
