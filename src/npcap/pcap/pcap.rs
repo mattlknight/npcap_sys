@@ -32,7 +32,11 @@ use winapi::shared::ws2def::{SOCKADDR};
 use winapi::um::winnt::{HANDLE};
 use winapi::um::winsock2::{timeval};
 use super::bpf::{bpf_u_int32, bpf_program, bpf_insn};
+pub const PCAP_IF_LOOPBACK: usize = 1;
+pub const PCAP_IF_UP: usize = 2;
+pub const PCAP_IF_RUNNING: usize = 4;
 pub const PCAP_ERRBUF_SIZE: usize = 256;
+
 pub type errbuf = [c_char; PCAP_ERRBUF_SIZE];
 pub type size_t = usize;
 STRUCT!{struct pcap_addr {
