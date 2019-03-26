@@ -4,12 +4,13 @@ use std::error::Error;
 use std::fmt;
 // use std::result::Result;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-use log::debug;
+use log::{debug, trace};
 use winapi::ctypes::{c_int};
-use winapi::shared::ws2def::{SOCKADDR, ADDRESS_FAMILY, AF_INET, AF_INET6};
+use winapi::shared::ws2def::{SOCKADDR, SOCKADDR_IN, ADDRESS_FAMILY, AF_INET, AF_INET6};
 use winapi::shared::ws2ipdef::{SOCKADDR_IN6};
 use winapi::shared::in6addr::{IN6_ADDR};
 use winapi::um::winnt::{CHAR};
+use winapi::um::winsock2::{ntohl};
 
 pub struct PcapAddress {
     address: IpAddr,
@@ -20,18 +21,18 @@ pub struct PcapAddress {
 }
 
 impl PcapAddress {
-    pub fn winapi_sockaddr_to_addr_v4(sockaddr: *mut SOCKADDR) -> Result<IpAddr,Box<Error>> {
-        if sockaddr.is_null() {
-            return Err("sockaddr.is_null()".into())
+    pub fn winapi_sockaddr_to_addr_v4(v4_sockaddr: *mut SOCKADDR_IN) -> Result<IpAddr,Box<Error>> {
+        if v4_sockaddr.is_null() {
+            return Err("v4_sockaddr.is_null()".into())
         }
-        let v4_sockaddr = unsafe { (*sockaddr) };
-        let af = v4_sockaddr.sa_family;
-        let data = unsafe { &*(&v4_sockaddr.sa_data as *const [i8] as *const [u8]) };
+        let v4_sockaddr = unsafe { (*v4_sockaddr) };
+        let af = v4_sockaddr.sin_family;
+        let addr = unsafe { v4_sockaddr.sin_addr.S_un.S_addr() };
+        let ordered_addr = unsafe { ntohl(*addr) };
+        debug!("{:?}", ordered_addr);
 
         if  af as c_int == AF_INET {
-            let mut bytes: [u8; 4] = Default::default();
-            bytes.copy_from_slice(&data[0..4]); // FIXME: Seems like this is inefficient
-            let address = IpAddr::V4(Ipv4Addr::from( bytes ));
+            let address = IpAddr::V4(Ipv4Addr::from( ordered_addr ));
             return Ok(address);
         } else {
             return Err(format!("winapi_sockaddr_to_addr_v4 not implemented for af type == {}", af).into());
@@ -65,26 +66,26 @@ impl PcapAddress {
         match af as c_int {
             AF_INET => {
                 debug!("convert pcap_addr to address");
-                let address = Self::winapi_sockaddr_to_addr_v4(addr.addr)?;
+                let address = Self::winapi_sockaddr_to_addr_v4(addr.addr as *mut SOCKADDR_IN)?;
                 let netmask = match addr.netmask.is_null() {
                     true => None,
                     false => {
                         debug!("convert pcap_addr to netmask");
-                        Some(Self::winapi_sockaddr_to_addr_v4(addr.netmask)?)
+                        Some(Self::winapi_sockaddr_to_addr_v4(addr.netmask as *mut SOCKADDR_IN)?)
                     },
                 };
                 let broadcast = match addr.broadaddr.is_null() {
                     true => None,
                     fasle => {
                         debug!("convert pcap_addr to broadcast");
-                        Some(Self::winapi_sockaddr_to_addr_v4(addr.broadaddr)?)
+                        Some(Self::winapi_sockaddr_to_addr_v4(addr.broadaddr as *mut SOCKADDR_IN)?)
                     },
                 };
                 let destination = match addr.dstaddr.is_null() {
                     true => None,
                     fasle => {
                         debug!("convert pcap_addr to destination");
-                        Some(Self::winapi_sockaddr_to_addr_v4(addr.dstaddr)?)
+                        Some(Self::winapi_sockaddr_to_addr_v4(addr.dstaddr as *mut SOCKADDR_IN)?)
                     },
                 };
 
@@ -97,7 +98,7 @@ impl PcapAddress {
                 })
             },
             AF_INET6 => {
-                debug!("convert pcap_addr to address");
+                trace!("convert pcap_addr to address");
                 let (address, scope_id) = Self::winapi_sockaddr_to_addr_v6(addr.addr as *mut SOCKADDR_IN6)?;
                 Ok(Self {
                     address,
@@ -124,13 +125,13 @@ impl fmt::Display for PcapAddress {
             write!(f, "Address:     {}\n", self.address)?;
         }
         if let Some(netmask) = self.netmask {
-            write!(f, "      NetMask:     {}\n", netmask)?;
+            write!(f, "    NetMask:     {}\n", netmask)?;
         }
         if let Some(broadcast) = self.broadcast {
-            write!(f, "      Broadcast:     {}\n", broadcast)?;
+            write!(f, "    Broadcast:   {}\n", broadcast)?;
         }
         if let Some(destination) = self.destination {
-            write!(f, "      Destination:     {}\n", destination)?;
+            write!(f, "    Destination:   {}\n", destination)?;
         }
         Ok(())
     }

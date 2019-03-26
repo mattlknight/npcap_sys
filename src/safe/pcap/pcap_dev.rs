@@ -11,6 +11,7 @@ use log::{debug, error, trace};
 use regex::Regex;
 use std::error::Error;
 use std::fmt;
+use std::mem;
 use std::ptr;
 use std::ffi::CString;
 use winapi::um::winnt::WCHAR;
@@ -46,7 +47,7 @@ impl PcapDev {
             false => str_from_c_str_ptr(dev.description)?,
         };
 
-        debug!("Looping through dev->addresses");
+        trace!("Looping through dev->addresses");
         let mut addresses = Vec::new();
         let mut pcap_if_address = dev.addresses;
         loop {
@@ -80,7 +81,7 @@ impl PcapDev {
         self.flags as usize & npcap::PCAP_IF_LOOPBACK != 0
     }
 
-    pub fn friendly_name(&self) -> Result<&str, Box<Error>> {
+    pub fn friendly_name(&self) -> &str {
         let guid = {
             if self.name.starts_with(NPF_NAME_PREFIX) {
                 self.name.trim_start_matches(NPF_NAME_PREFIX)
@@ -88,64 +89,67 @@ impl PcapDev {
                 &self.name
             }
         };
-        debug!("guid == {}", guid);
+        // debug!("guid text == \"{}\"", guid);
 
-        let guid = parse_guid(guid)?;
-        let guid_ptr: *const GUID = &guid;
-        debug!("Guid Data1: {:x?}", guid.Data1);
-        debug!("Guid Data2: {:x?}", guid.Data2);
-        debug!("Guid Data3: {:x?}", guid.Data3);
-        debug!("Guid Data4: {:x?}", guid.Data4);
-        
+        let guid = match parse_guid(guid) {
+            Ok(guid) => guid,
+            Err(err) => panic!("{:?}", err),
+        };
+        // let guid_ptr: *const GUID = &guid;
+        // debug!("std::mem::size_of::<GUID>(): {}", std::mem::size_of::<GUID>());
+        // debug!("Guid Data1: {:X?}", guid.Data1);
+        // debug!("Guid Data2: {:X?}", guid.Data2);
+        // debug!("Guid Data3: {:X?}", guid.Data3);
+        // debug!("Guid Data4: {:X?}", guid.Data4);
+        trace!("guid == {:X?}", guid);
 
-        let mut luid = ptr::null_mut();
-        let result = unsafe { netioapi::ConvertInterfaceGuidToLuid(guid_ptr, luid) };
+        let mut luid = unsafe { mem::zeroed() };
+        let result = unsafe { netioapi::ConvertInterfaceGuidToLuid(&guid, &mut luid) };
         if result != NO_ERROR {
             panic!("ConvertInterfaceGuidToLuid() result = {}", result);
         };
-        debug!("{:?}", luid);
 
         let mut w_alias_buf: IF_ALIAS_BUF = [0; NDIS_IF_MAX_STRING_SIZE + 1];
-        let result = unsafe { netioapi::ConvertInterfaceLuidToAlias(luid, w_alias_buf.as_mut_ptr(), NDIS_IF_MAX_STRING_SIZE + 1) };
-        if result != NO_ERROR {
-            panic!("ConvertInterfaceLuidToAlias() result = {}", result);
+        let result2 = unsafe { netioapi::ConvertInterfaceLuidToAlias(&luid, w_alias_buf.as_mut_ptr(), NDIS_IF_MAX_STRING_SIZE + 1) };
+        if result2 != NO_ERROR {
+            panic!("ConvertInterfaceLuidToAlias() result2 = {}", result2);
         };
 
         let size = unsafe { stringapiset::WideCharToMultiByte(CP_UTF8 as u32, 0, w_alias_buf.as_ptr(), -1, ptr::null_mut(), 0, ptr::null_mut(), ptr::null_mut()) };
         if size == 0 {
-            panic!("WideCharToMultiByte() size = {}", size);
+            panic!("WideCharToMultiByte() size = 0");
         };
 
         let mut alias_buf = Vec::with_capacity(size as usize); // FIXME: Seems inefficient
         let size = unsafe { stringapiset::WideCharToMultiByte(CP_UTF8 as u32, 0, w_alias_buf.as_ptr(), -1, alias_buf.as_mut_ptr(), size, ptr::null_mut(), ptr::null_mut()) };
         if size == 0 {
-            panic!("WideCharToMultiByte() #2 size = {}", size);
+            panic!("WideCharToMultiByte() #2 size = 0");
         };
 
         let bytes: &[u8] = unsafe { &*(alias_buf.as_ref() as *const [i8] as *const [u8]) };
 
         let c_string = match str_from_c_str_buff_u8(bytes) {
             Ok(c_string) => c_string,
-            Err(err) => panic!("{:?}", err),
+            Err(err) => {
+                panic!("str_from_c_str_buff_u8() err = {:?}", err);
+            },
         };
-        Ok(c_string)
+        c_string
     }
 }
 
 impl fmt::Display for PcapDev {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Name:     {}\n", self.name)?;
-        write!(f, "    Description:     {}\n", self.description)?;
-        if let Ok(name) = self.friendly_name() {
-            write!(f, "    Alias:     {}\n", name)?;
-        }
+        write!(f, "Name:          {}\n", self.name)?;
+        write!(f, "   Description:  {}\n", self.description)?;
+        write!(f, "   Alias:        {}\n", self.friendly_name())?;
         if self.is_loopback() {
-            write!(f, "    Loopback:  yes\n")?;
+            write!(f, "   Loopback:     yes\n")?;
         } else {
-            write!(f, "    Loopback:  no\n")?;
+            write!(f, "   Loopback:     no\n")?;
         }
         for address in &self.addresses {
-            write!(f, "      {}", address)?;
+            write!(f, "    {}", address)?;
         }
         Ok(())
     }

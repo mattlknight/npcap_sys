@@ -14,6 +14,7 @@ pub struct Pcap {
 
 impl Pcap {
     pub fn new() -> Self {
+        trace!("Pcap::new()");
         Self {
             err_buf: ErrBuf::new(),
             pcap_devs: Vec::new(),
@@ -24,7 +25,7 @@ impl Pcap {
         let mut all_devs: *mut npcap::pcap_if_t = std::ptr::null_mut();
         self.err_buf.clear();
 
-        debug!("pcap_findalldevs()");
+        trace!("pcap_findalldevs()");
         let result = unsafe { npcap::pcap_findalldevs(&mut all_devs, self.err_buf.buf_ptr_mut()) };
         
         match result {
@@ -41,7 +42,7 @@ impl Pcap {
             },
         }
 
-        info!("Looping through all_devs");
+        info!("Identifying interfaces");
         let mut device = all_devs; // Initially set device == start of all_devs
         loop {
             if device.is_null() {
@@ -62,7 +63,7 @@ impl Pcap {
             device = this_device.next;
         }
 
-        debug!("pcap_freealldevs()");
+        trace!("pcap_freealldevs()");
         unsafe { npcap::pcap_freealldevs(all_devs) };
         trace!("C all_devs should be freed");        
 

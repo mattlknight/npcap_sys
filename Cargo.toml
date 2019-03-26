@@ -26,7 +26,7 @@ log = "*"
 regex = "*"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { git = "https://github.com/mattlknight/winapi-rs", branch = "iphlpapi", features = ["impl-default", "in6addr", "inaddr", "iptypes", "minwinbase", "minwindef", "netioapi", "ntdef", "stringapiset", "winerror", "winsock2", "ws2def", "ws2ipdef"] }
+winapi = { git = "https://github.com/mattlknight/winapi-rs", branch = "iphlpapi", features = ["impl-default", "impl-debug", "in6addr", "inaddr", "iptypes", "minwinbase", "minwindef", "netioapi", "ntdef", "stringapiset", "winerror", "winsock2", "ws2def", "ws2ipdef"] }
 
 [features]
 debug = ["impl-debug"]
