@@ -29,7 +29,7 @@ impl PcapAddress {
         let af = v4_sockaddr.sin_family;
         let addr = unsafe { v4_sockaddr.sin_addr.S_un.S_addr() };
         let ordered_addr = unsafe { ntohl(*addr) };
-        debug!("{:?}", ordered_addr);
+        trace!("{:?}", ordered_addr);
 
         if  af as c_int == AF_INET {
             let address = IpAddr::V4(Ipv4Addr::from( ordered_addr ));
@@ -65,26 +65,26 @@ impl PcapAddress {
         let af = address.sa_family;
         match af as c_int {
             AF_INET => {
-                debug!("convert pcap_addr to address");
+                trace!("convert pcap_addr to address");
                 let address = Self::winapi_sockaddr_to_addr_v4(addr.addr as *mut SOCKADDR_IN)?;
                 let netmask = match addr.netmask.is_null() {
                     true => None,
                     false => {
-                        debug!("convert pcap_addr to netmask");
+                        trace!("convert pcap_addr to netmask");
                         Some(Self::winapi_sockaddr_to_addr_v4(addr.netmask as *mut SOCKADDR_IN)?)
                     },
                 };
                 let broadcast = match addr.broadaddr.is_null() {
                     true => None,
                     fasle => {
-                        debug!("convert pcap_addr to broadcast");
+                        trace!("convert pcap_addr to broadcast");
                         Some(Self::winapi_sockaddr_to_addr_v4(addr.broadaddr as *mut SOCKADDR_IN)?)
                     },
                 };
                 let destination = match addr.dstaddr.is_null() {
                     true => None,
                     fasle => {
-                        debug!("convert pcap_addr to destination");
+                        trace!("convert pcap_addr to destination");
                         Some(Self::winapi_sockaddr_to_addr_v4(addr.dstaddr as *mut SOCKADDR_IN)?)
                     },
                 };
